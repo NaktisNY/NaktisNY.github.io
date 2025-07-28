@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kişisel Kitaplığım</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Genel sayfa stilleri */
+        body {
+            font-family: 'Merriweather', serif;
+            background-color: #fdfaf3;
+            color: #333;
+        }
+        /* Kitap kapakları için özel stiller */
+        .book-cover {
+            background-color: #f3efe6;
+            border: 1px solid #e0d9cf;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            aspect-ratio: 2 / 3; /* Klasik kitap kapağı oranı */
+        }
+        .book-cover:hover {
+            transform: translateY(-5px) scale(1.03);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+        .book-title {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+        }
+        .book-author {
+            font-family: 'Merriweather', serif;
+            font-style: italic;
+            font-size: 0.9rem;
+        }
+
+        /* Kitap okuma arayüzü stilleri */
+        #reader-view {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #fdfaf3;
+            z-index: 100;
+            overflow: hidden;
+        }
+        #book-slider {
+            display: flex;
+            height: 100%;
+            transition: transform 0.4s ease-in-out;
+        }
+        .page {
+            width: 100vw;
+            height: 100vh;
+            flex-shrink: 0;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2.5rem 1.5rem;
+            overflow-y: auto;
+        }
+        .page-content {
+            max-width: 800px;
+            width: 100%;
+            font-size: clamp(1rem, 4.5vw, 1.2rem);
+            line-height: 1.75;
+        }
+        .nav-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 44px;
+            height: 44px;
+            background-color: rgba(0,0,0,0.25);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 1010;
+            user-select: none;
+            transition: background-color 0.3s;
+        }
+        .nav-arrow:hover { background-color: rgba(0,0,0,0.4); }
+        #prev-page { left: 10px; }
+        #next-page { right: 10px; }
+        #back-to-library {
+            left: 50%;
+            transform: translateX(-50%);
+            top: 20px;
+            width: auto;
+            padding: 0 16px;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- KİTAPLIK GÖRÜNÜMÜ -->
+    <div id="library-view">
+        <div class="container mx-auto px-4 py-8">
+            <header class="text-center mb-12">
+                <h1 class="text-5xl font-bold font-serif" style="font-family: 'Playfair Display', serif;">Kişisel Kitaplığım</h1>
+                <p class="text-lg text-gray-600 mt-2">Okumak için bir kitap seçin.</p>
+            </header>
+            <main id="book-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 md:gap-8">
+                <!-- Kitap kapakları buraya JavaScript ile eklenecek -->
+            </main>
+        </div>
+    </div>
+
+    <!-- KİTAP OKUMA GÖRÜNÜMÜ (Başlangıçta gizli) -->
+    <div id="reader-view" class="hidden">
+        <div id="book-slider-container" class="w-full h-full">
+            <div id="book-slider">
+                <!-- Kitap sayfaları buraya JavaScript ile eklenecek -->
+            </div>
+        </div>
+        <!-- Navigasyon -->
+        <div id="prev-page" class="nav-arrow"></div>
+        <div id="next-page" class="nav-arrow"></div>
+        <div id="back-to-library" class="nav-arrow">Kitaplığa Dön</div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // ==================================================================
+        // === KİTAPLARINIZI BURAYA EKLEYİN =================================
+        // ==================================================================
+        const myBooks = [
+            {
+                id: 1,
+                title: "Kırılma Noktası",
+                author: "İstanbul'un Gölgeleri",
+                content: [
+                    `<div class="text-center"><h3 class="text-5xl md:text-7xl font-bold" style="font-family: 'Playfair Display', serif;">KIRILMA NOKTASI</h3><h4 class="text-2xl md:text-3xl italic mt-4">İSTANBUL'UN GÖLGELERİ</h4><p class="mt-8 text-base italic">Sayfayı çevirmek için kaydırın veya oklara tıklayın.</p></div>`,
+                    `<h4 class="text-xl italic text-center mb-4">BİRİNCİ KISIM: GÜNAH TOHUMU</h4><p class="text-center text-sm italic mb-6">(Kasım 1875 - Tophane)</p><p class="mb-4 text-justify indent-8">Haliç’in sularına karışan kömür dumanları, İstanbul’un üzerine kasvetli bir perde çekmişti. Süleyman, Tophane’deki kiralık odasında annesinin mektubunu titreyen parmaklarıyla tutarken, mürekkep lekeli satırlar gözlerini yakıyordu: <em>"Oğul, babanın emaneti zümrüt yüzüğü Hüsnü Efendi’ye rehin bıraktık. Seni okutabilmek için..."</em> Pencerenin buzlu camından süzülen soluk ışık, on yıl öncesine, Konya’daki medrese avlusuna götürdü onu. Babası Hafız Mehmet Efendi, 93 Harbi’ne giderken o zümrüdu avucuna sıkıştırmıştı: <em>"Deden Çanakkale’de bu taşı göğsünde taşıdı! İngiliz güllesi zırhlıyı parçaladığında, enkazın altından onu çıkardı. Bil ki bu yüzük, bizim namusumuzdur!"</em></p><p class="text-center italic mt-6">(Sayfa 1)</p>`,
+                    `<p class="mb-4 text-justify indent-8">Dışarıda Şirket-i Hayriye vapurunun keskin düdük sesi, Karaköy rıhtımının karmaşasını bölüyordu. Süleyman’ın ceketinin iç cebinde, Çerkes piyade bıçağının soğuk metali terli tenine yapışmıştı. Kasımpaşa’nın dar yokuşlarında ilerlerken, Sirkeci’deki meyhanelerden yükselen bozuk ud sesleri kulaklarını tırmalıyordu. <em>Hacı Arif Kahvesi</em>’nin önünde, kör dilenci Hüseyin’in Battal Gazi hikâyesi duyuluyordu: <em>"Zalim Yezid’in kılıcı kendi ciğerine saplanır evlat! Adalet terazisi bozulunca..."</em></p><p class="mb-4 text-justify indent-8">Hüsnü Efendi’nin konağının bahçe kapısı, her zamanki gibi aralıktı. Süleyman içeri süzülürken, altın varaklı aynalarda kendi çarpık siluetini gördü. Tefeci, ceviz masasında rakısını yudumlarken parmağındaki zümrüdü ışığa tutuyordu: <em>"Süleyman Efendi! Mecelle’nin 97. maddesi hükmünce, borcun vadesi doldu. Yarın sabaha beş yüz kuruşun yoksa..."</em> Masanın üzerinde duran <em>Tercüman-ı Ahvâl</em> gazetesi, V. Murad’ın tahttan indirildiğini haykırıyordu.</p><p class="text-center italic mt-6">(Sayfa 2)</p>`,
+                ]
+            },
+            {
+                id: 2,
+                title: "Yeni Kitabım",
+                author: "Yazar Adı",
+                content: [
+                    `<div class="text-center"><h3 class="text-5xl font-bold" style="font-family: 'Playfair Display', serif;">YENİ KİTABIM</h3><p class="mt-8">Bu, ekleyeceğiniz yeni bir kitabın ilk sayfasıdır.</p></div>`,
+                    `<p>Bu da ikinci sayfası.</p>`
+                ]
+            }
+        ];
+        // ==================================================================
+        // === KODUN GERİ KALANINI DEĞİŞTİRMENİZE GEREK YOK ==============
+        // ==================================================================
+
+        const libraryView = document.getElementById('library-view');
+        const readerView = document.getElementById('reader-view');
+        const bookGrid = document.getElementById('book-grid');
+        const bookSlider = document.getElementById('book-slider');
+        const prevBtn = document.getElementById('prev-page');
+        const nextBtn = document.getElementById('next-page');
+        const backBtn = document.getElementById('back-to-library');
+
+        let currentPage = 0;
+        let totalPages = 0;
+
+        function renderLibrary() {
+            bookGrid.innerHTML = '';
+            myBooks.forEach(book => {
+                const bookElement = document.createElement('div');
+                bookElement.className = 'book-cover cursor-pointer p-4 rounded-lg';
+                bookElement.innerHTML = `<h2 class="book-title text-xl lg:text-2xl">${book.title}</h2><p class="book-author mt-2 text-gray-600">${book.author}</p>`;
+                bookElement.addEventListener('click', () => openBook(book.id));
+                bookGrid.appendChild(bookElement);
+            });
+        }
+
+        function openBook(bookId) {
+            const book = myBooks.find(b => b.id === bookId);
+            if (!book) return;
+
+            bookSlider.innerHTML = '';
+            book.content.forEach(pageContent => {
+                const pageElement = document.createElement('div');
+                pageElement.className = 'page';
+                pageElement.innerHTML = `<div class="page-content">${pageContent}</div>`;
+                bookSlider.appendChild(pageElement);
+            });
+
+            totalPages = book.content.length;
+            bookSlider.style.width = `${totalPages * 100}%`;
+            
+            libraryView.classList.add('hidden');
+            readerView.classList.remove('hidden');
+            
+            goToPage(0);
+        }
+
+        function closeReader() {
+            readerView.classList.add('hidden');
+            libraryView.classList.remove('hidden');
+            bookSlider.innerHTML = '';
+        }
+        
+        function goToPage(pageNumber) {
+            if (pageNumber < 0 || pageNumber >= totalPages) return;
+            slider.style.transform = `translateX(-${pageNumber * (100 / totalPages)}%)`;
+            currentPage = pageNumber;
+            updateButtonVisibility();
+        }
+
+        function updateButtonVisibility() {
+            prevBtn.style.display = currentPage === 0 ? 'none' : 'flex';
+            nextBtn.style.display = currentPage === totalPages - 1 ? 'none' : 'flex';
+        }
+
+        function turnNextPage() { goToPage(currentPage + 1); }
+        function turnPrevPage() { goToPage(currentPage - 1); }
+
+        prevBtn.addEventListener('click', turnPrevPage);
+        nextBtn.addEventListener('click', turnNextPage);
+        backBtn.addEventListener('click', closeReader);
+        
+        document.addEventListener('keydown', (e) => {
+            if (readerView.classList.contains('hidden')) return;
+            if (e.key === 'ArrowRight') turnNextPage();
+            else if (e.key === 'ArrowLeft') turnPrevPage();
+            else if (e.key === 'Escape') closeReader();
+        });
+
+        let touchstartX = 0;
+        readerView.addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; }, { passive: true });
+        readerView.addEventListener('touchend', e => {
+            const touchendX = e.changedTouches[0].screenX;
+            const swipeThreshold = 50;
+            if (touchendX < touchstartX - swipeThreshold) turnNextPage();
+            if (touchendX > touchstartX + swipeThreshold) turnPrevPage();
+        });
+
+        prevBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>';
+        nextBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>';
+        const slider = document.getElementById('book-slider');
+
+        renderLibrary();
+    });
+    </script>
+</body>
+</html>
